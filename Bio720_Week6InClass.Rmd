@@ -1,0 +1,119 @@
+---
+title: "ID_Bio720_Week6"
+author: "James Naphtali"
+date: "October 22, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Question 1
+A HTML and a .RMD file were generated. 
+
+##Question 2
+R is a high level language since it has many layers of abstraction over machine code. High-level language is more human-readable compared to low-level. 
+
+##Question 3
+R is an interpretive language. Interpretive languages does not have to be compiled into another language to run, compared to C++, a compiled language, where the code is converted into machine-code to be run
+
+##Question 4
+R is slow due to its interactive (run by line) nature, also its high number of built-in functions to be loaded. R was designed for stability to prevent errors and consistency during statistical analysis 
+
+##Question 5
+C and Fortran. Fortran and C are faster and more stable languages than R for core calculations.
+
+##Question 6
+asd
+
+##Question 7
+Logical (Boolean), integer, real (double or floating point), complex, string, and raw
+
+##Question 8
+typeof(x) classifies datatypes based on how R classifies atomic types, while mode(x) shows what type it stors the data.  
+
+##Question 9
+y <- c(3,4,5) is considered a double datatype, while z=3:5 is considered an integer datatype in R by using typeof(x) function.
+
+##Question 10
+R predicts that there will probably be fractions from operations such as division and square roots and treats the data as double. The square operation results in a double for flexibility in handling large input values as well as floating-point data. 
+
+##Question 11
+1. integer
+2. character
+3. character
+4. logical
+5. character
+
+##Question 12
+We can coerce a variable using the == operator, telling R to equal x (an double) to y (a character) by converting x into a character. This is different from the = sign which is used to denote variables and literally means "is". We can also use functions such as as.character() to coerce variables into characters respectively. We can coerce a to b by using is.logical(). 
+
+##Question 13
+Use the function integer(), specifically integer(10). It outputs 10x zeroes as we did not define any other arguments, which results in the function outputting its default parameters. 
+
+##Question 14
+Sum is 20, as falses have a numeric value of 0.
+
+##Question 15
+We convert the objects in the environment into a list of characters, and using the remove function, remove the list. 
+The objects are numeric double types.
+
+```{r}
+genotype <- c("wildtype","wildtype","wildtype","mutant","mutant","mutant")
+str(genotype)
+genotype2 <- (rep(c("wildtype", "mutant"), each=3))
+str(genotype2)
+genotype3 <- gl(n = 2, k = 3, labels = c("wildtype", "mutant"))
+str(genotype3)
+```
+####Genotype and genotype 2 are the same data type, a vector of characters. Genotype 3 is generated as a factor with 2 levels. 
+
+##Question 16
+```{r}
+genotype2_factor=factor(genotype2)
+str(genotype2_factor) 
+```
+####we can check if it is a factor using str(). Specifying genotype2 as a factor afterwards yields the same datatype (a factor with 2 levels) as genotype3 although the order between factorized genotype2 is different than genotype3   
+
+##Question 17
+```{r}
+day <- gl(n = 2, k = 1 , length = 6, labels = c(3, 6)) #using the same code as genotype3
+str(day)
+```
+
+##Question 18
+```{r}
+as.character(day)
+```
+
+##Question 19
+```{r}
+as.numeric(day) #made numerics of factor levels
+```
+
+##Question 20
+```{r}
+as.numeric(as.character(day)) #convert to characters first and then coerce the correct lengths in character to numerics. 
+```
+
+##Question 21
+```{r}
+gene1 <- c(3, 4, 7, 9, 12, 6)
+gene2 <- c(11, 17, 12, 25, 23, 7)
+gene3 <- c(100, 103, 97, 94, 106, 111)
+
+gene_mat1 <- cbind(gene1, gene2, gene3)
+gene_mat1
+
+gene_mat2 <- matrix(c(gene1, gene2, gene3), nrow = 6, ncol = 3, byrow=FALSE)
+gene_mat2
+
+identical(gene_mat1, gene_mat2)
+```
+####difference between using cbind() and matrix () is only that the column names are preserved using cbind. 
+
+##Question 22
+
+
+
+

@@ -1,0 +1,99 @@
+---
+title: "In class assignment week 2, part 2. A worked example using control flow (for loops, if statements, etc)"
+author: "James Naphtali"
+output: 
+  html_document:
+    keep_md: yes
+    number_sections: no
+---
+
+# Introduction
+Let's do a little exercise integrating some of the things we have learned. Here are some Illumina HiSeq reads for one of our recent projects:
+
+```{r}
+read_1 <- "CGCGCAGTAGGGCACATGCCAGGTGTCCGCCACTTGGTGGGCACACAGCCGATGACGAACGGGCTCCTTGACTATAATCTGACCCGTTTGCGTTTGGGTGACCAGGGAGAACTGGTGCTCCTGC"
+
+read_2 <- "AAAAAGCCAACCGAGAAATCCGCCAAGCCTGGCGACAAGAAGCCAGAGCAGAAGAAGACTGCTGCGGCTCCCGCTGCCGGCAAGAAGGAGGCTGCTCCCTCGGCTGCCAAGCCAGCTGCCGCTG"
+
+read_3  <- "CAGCACGGACTGGGGCTTCTTGCCGGCGAGGACCTTCTTCTTGGCATCCTTGCTCTTGGCCTTGGCGGCCGCGGTCGTCTTTACGGCCGCGGGCTTCTTGGCAGCAGCACCGGCGGTCGCTGGC"
+```
+
+####Question 1. what species are these sequences from?
+  #Drosphila melanogaster.
+
+####Question 2. Put all three of these reads into a single object (a vector).  What class will the vector `reads` be? Check to make sure! How many characters are in each read (and why does `length()` not give you what you want.. try...)
+```{r}
+reads <- c(read_1, read_2, read_3)
+class(reads)
+length(reads)
+```
+    #Length does not provide the correct read length as converting the reads into a single vector results in R treating each read as a single element of a vector. 
+
+#####Question 3. Say we wanted to print each character (not the full string) from read_1, how do we do this using a for loop? You may wish to look at a function like `strsplit()` to accomplish this (there are other ways.)
+
+```{r}
+read_1_split <- strsplit(read_1, split = character(0), fixed = T) #split combined vector of reads into individual base reads as elements of new list read_1_split. Use parameter character(0) for the split argument to use null characters as the element identifier (credit to Jerry for this idea!)
+
+for (base in read_1){
+  base <- strsplit(base, split = character(0), fixed = T)
+  print(base)
+}
+```
+    #Interestingly, using character(0) generates the same list as using "" as the string identifier.
+####Question 4. What kind of object does this return? How might we make it a character vector again?
+
+```{r}
+read_1_split <- as.character(unlist(read_1_split)) #unlist list to a vector and convert vectorized list to a character vector
+```
+    #Creates a list object. We can use the function unlist() to convert each base into vector elements and then as.character to convert it into a vector of characters
+
+####Question 5. How about if we wanted the number of occurrences of each base? Or better yet, their frequencies? You could write a loop, but I suggest looking at the help for the `table()` function... Also keep in mind that for for most objects `length()` tells you how many elements there are in a vector. For lists use `lengths()` (so you can either do this on a character vector or a list, your choice)
+```{r}
+table(read_1_split) #count base occurences in vector of combined reads.
+length(read_1_split) #length of character vector
+read_1_freq <- table(read_1_split)/length(read_1_split) #Calculate base frequencies
+print(read_1_freq)
+```
+
+####Question 6. How would you make this into a nice looking function that can work on either a list or vectors of characters? (Still just for a single read)
+```{r}
+BaseFrequencies <- function(x) {
+    if (mode(x) == "list") {
+    	tab <- table(x)/lengths(x)}
+    
+    else {
+    	tab <- table(x)/length(x)
+    }	
+   return(tab)
+}
+```
+
+
+####Question 7. Now how can you modify your approach to do it for an arbitrary numbers of reads? You could use a loop or use one of the apply like functions (which one)?
+```{r}
+basefreq <- lapply(read_1_split, BaseFrequencies)
+print(basefreq, digits = 2)
+```
+####Question 8. Can you revise your function so that it can handle the input of either a string as a single multicharacter vector, **or** a vector of individual characters **or** a list? Try it out with the vector of three sequence reads (`reads`).  
+```{r}
+BaseFrequencies <- function(x) {
+    
+    # if it is a single string still
+    if (length(x) == 1 & mode(x) == "character") {
+    	x <- strsplit(x, split = "", fixed = T) 
+        x <- as.character(unlist(x))
+    }     
+    
+    if (mode(x) == "list") {
+    	tab <- table(x)/lengths(x)}
+    
+    else {
+    	tab <- table(x)/length(x)
+    }	
+   return(tab)
+}
+basefreq <- sapply(reads, BaseFrequencies, USE.NAMES = F)
+print(basefreq, digits = 2)
+```
+
+
