@@ -1,0 +1,112 @@
+---
+title: "Assignment 3"
+author: "James Naphtali"
+date: "November 5, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Import data
+```{r R.options=list(max.print=10)}
+count_data <- read.csv("C:/Users/james/Documents/R Analysis/Bio720/Assignment 3/eXpress_dm_counts.csv", row.names = 1)
+head(count_data)
+```
+##Summary of data
+```{r R.options=list(max.print=12)}
+str(count_data)
+head(summary(count_data))
+```
+
+## Question 2
+```{r count_data}
+output <- vector("double", ncol(count_data))
+col_means <- function(x, transformLog2) {
+  
+  for (i in seq_along(x)) {
+    if (transformLog2 == TRUE) {
+		output[[i]] <- mean(log2(x[[i]]+0.1)) ##Add 0.1 to default expression values to avoid non-values after log2. 
+  } else
+    output[[i]] <- mean(x[[i]])
+  }
+  output
+  
+}
+  
+log_means <- col_means(count_data, TRUE)
+log_means
+means <- col_means(count_data, FALSE)
+means
+```
+## Question 3
+```{r}
+names(means) <- colnames(count_data)
+means
+means[which.min(means)]
+means[which.max((means))]
+names(log_means) <- colnames(count_data)
+log_means
+log_means[which.min(log_means)]
+log_means[which.max((log_means))]
+```
+The lowest and highest expression values in non-log transformed dataset are small females' thoracic horns and large males' wings. In the log transformed dataset, large females' wings are the lowest   
+in expression value and the highest are small females' wings. 
+## Question 4
+```{r}
+means_sapply <- sapply(count_data, mean)
+means_sapply
+system.time(sapply(count_data, mean))#System time using the sapply()
+system.time(col_means(count_data, transformLog2 = TRUE)) #System time using my custom function
+```
+Using the sapply() function, R calculates the mean quicker than using the user defined for loop function. 
+
+##Question 5
+```{r}
+mean_rish <- colMeans(count_data)
+mean_rish
+system.time(colMeans(count_data))
+```
+##Question 6
+```{r}
+##Objective - loop over rows and obtain row means.
+output <- vector("double", nrow(count_data)) #Change output vector to number of rows
+row_means <- function(x, transformLog2) {
+  
+  for (i in seq_along(x)) {
+    if (transformLog2 == TRUE) {
+		output[[i]] <- mean(log2(x[[i]]+0.1)) ##Add 0.1 to default expression values to avoid non-values after log2. 
+  } else
+    output[[i]] <- mean(x[[i]])
+  }
+  output
+  
+}
+mean_gene_exp<- row_means(count_data, TRUE)
+names(mean_gene_exp) <- rownames(count_data)
+head(mean_gene_exp)
+```
+##Question 7
+```{r}
+##Objective - subset dataframe to column names containing all colnames with the following strings: "lg_male_hdhorn" and "sm_male_hdhorn"
+all_male_grep <- grep("_male_hdhorn", names(count_data), value = TRUE)
+male_hdhorn_df <- count_data[, all_male_grep] #Subset dataframe with grepped column name vector
+male_mean_gene <- rowMeans(male_hdhorn_df)
+##Subset dataframe with only large males
+lg_male_grep <- grep("lg_male_hdhorn", names(count_data), value = TRUE)
+lg_male_hdhorn_df <- count_data[, lg_male_grep] #Subset dataframe with grepped column name vector
+lg_mean_gene <- rowMeans(lg_male_hdhorn_df)
+##Subset dataframe with only small males
+sm_male_grep <- grep("sm_male_hdhorn", names(count_data), value = TRUE)
+sm_male_hdhorn_df <- count_data[, sm_male_grep] #Subset dataframe with grepped column name vector
+sm_mean_gene <- rowMeans(sm_male_hdhorn_df)
+diff_means <- abs(lg_mean_gene - sm_mean_gene) #Calculate difference in absolute mean gene expression between large and small males head horns. 
+head(diff_means)
+```
+##Question 8
+```{r}
+plot(male_mean_gene, diff_means, main="Mean Gene and Difference in Mean Gene Expression", xlab="Mean Gene Expression", ylab="Difference in Mean Gene Expression") #Plot non-log transformed means vs. difference of means of male head horns
+log_gene_male_means <- log2(male_mean_gene)
+log_gene_means_diff <- log2(diff_means)
+plot(log_gene_male_means, log_gene_means_diff, main="Log2 Transformed Mean Gene and Difference in Mean Gene Expression", xlab="Log 2 Mean Gene Expression", ylab="Log 2 of Difference in Mean Gene Expression")
+```
