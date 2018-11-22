@@ -1,0 +1,75 @@
+---
+title: "Bio720 - Simulating Data"
+author: "James Naphtali"
+date: "November 19, 2018"
+output: html_document:
+    keep_md: yes
+    number_sections: yes
+  html_notebook:
+    number_sections: yes
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```  
+
+##Using Computers to find numerical solutions  
+- Untractable models, models that don't have a closed form solutions, it can't be applied to general form  
+- Computers can solve this  
+
+##Detemrinistic VS. Stochastic  
+- Deterinisitc - outcome of model entirely dependent on itself and the starting conditions.  
+- Stochastic - only random evens influence the outcome or changes applied to a phenomenon. We usually start with deterministic models as that is the hypothesis we start with.  
+
+##A simple detemrinistic model one-locus model of natural selection  
+- Selection on an allele influences its frequency in the population over time.  
+- In a ismple haploid model we can envision two altnerative alleles, A and a.  
+- a is initially fixed in the population, but the new mutaiton A arrives and it is benfiial. What will happen to this allele?  
+
+##Hapliod Selection Model  
+- Frequency of A at time t is p(t)  
+- Fitness of A is WA and for a is Wa.  
+- In R, What do you need to model this mathematical equation?  
+- Variables:  
+
+*Frequency of A in the current generation = P_t1  
+*in the next generation = P_t2  
+*Fitness of A = WA  
+*Fitness of a = Wa  
+
+- So how do you convert this into an R chunk?  
+- Pseudocode
+p_t1 <- function(p_t0, WA, Wa)
+
+```{r}
+p_t1 <- function(WA, Wa, p_t0) {
+  w_bar <- (p_t0*WA) + ((1-p_t0)*Wa)
+  p_t1 <- (WA*p_t0)/w_bar
+  return(p_t1)
+
+}
+p_t1(WA = 1.1, Wa = 1.0, p_t0 = 0.5)
+```  
+
+##How do we determine if it is stochastic or detemrinisitc?  
+- Use a replicate function to loop through the model function several times to see if the values change after each try  
+##Allele frequency dynamics throughout generations  
+- Use a for loop to simulate this model across many generations 
+- Pseudocode  
+*Instantiate a vector to contain the generation count.  
+*Make a for loop iterating through ith generation.  
+*
+
+```{r}
+p <- rep(NA,n)
+w_bar <- rep(NA,n)
+p[1] <- p0
+w_bar[1] <- (p[1]*w1) + ((1-p[1])*w2) #Starting element for variables is element in index 1. So in the for loop, minus i-1 for all variables that contain generation 
+for(i in 2:n){
+  w_bar[i-1] <- (p(i-1))
+}
+
+```
+
+
