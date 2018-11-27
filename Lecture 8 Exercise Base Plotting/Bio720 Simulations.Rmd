@@ -70,6 +70,165 @@ for(i in 2:n){
   w_bar[i-1] <- (p(i-1))
 }
 
-```
+```  
+
+##Stochastic simulations  
+- Add some sources of random variation at various sections of the model and allowing the variation to propagate into the final answer. We can't say with certainty what the outcome will be as it will spit out the probability of a model.  
+- Computers cannot truly be random. RNG's are not truly random  
+```{r}
+x <- rnorm(1000, mean =5, sd = 1)
+mean(x)
+
+set.seed(720)
+x <- rnorm(1000, mean =5, sd = 1)
+mean(x)
+rm(x)
+```  
+- setting the seed will instantiate a defined set of numbers after the first distribution of numbers have been made so that running the distriubtion will not generate another set of numbers. The first set of numbers will be stored in memory. THe first run of the distriubtion obtains different values as the computer uses the clock to the know to generate different set of numbers at a given time.  
+- setting the seed allows reproducible results. without setting the seed, the computer defaults to using the current time and date. 
+
+##Rolling the dice  
+```{r eval=FALSE}
+#Sample code
+sample(x, size, replace = FALSE, prob = null) #X is the dataset. Size is number of rolls of dice. replace refers to whether or not to sample with replacement(for nucleotide ATCG, we would sample with replacement as there's only 4 elements), prob refers to 
+```  
+```{r}
+sample(1:6, size =1, replace = TRUE)
+rolls <- replicate(1000, sample(1:6, size = 1, replace = TRUE))
+barplot(table(rolls))
+```  
+- better way to roll the die. If we specify `replace = FALSE` than the function will stop short as there's only 6 values  
+```{r}
+more_rolls <- sample(1:6, size =1000, replace = TRUE) ##Returns an error
+more_rolls
+more_rolls2 <- sample(1:6, size = 6, replace = TRUE)
+more_rolls2
+```  
+- Sampling without replacement is useful for detemrining if there is an experimental due to order of sampling  
+
+##How is the sample function useful?  
+- THere are many times that sampling with or without replacement can be done with empirical resampling methods.  
+- randomization/permutation tests(sampling without replacement). Essentially shuffling the order of observations relative to a treatent variable.  
+- non-parametric bootstrap (sampling with replacement) determines standard errors and confidence intervals on estimated quantities based on properties of the observed distribution. Allows bootstrapping without violating statistical assumptions.  
+
+##Using the sample function to model genetic drift  
+- Genetic drift = change in allele frequencies from one generation to the next without natural selection. a stochastic (by chance) differences of allele frequencies across generations   
+- We have two alleles at a given genetic locus, "A" and "a", in  a population of diploids with each individual having 2 alleles  
+- Total of 20 individuals, mate randomly  
+- population size stays constant  
+- If the allele frequency for A and a are equal (both 0.5) write a simulation that will preduct frequency from gen 1 to gen 2.  
+- Things to consider  
+* use sample(x, size,replace)  
+* What is your vector of observations (what do we want to sample from) a set of 40 individuals 
+* HOw many alleles do we want in the next generation and which argument allows for this, the A and a variables in the x argument
+* Do we want replace = TRUE or replace =FALSE? we would want TRUE the individuals can mate more than once, (but only the first generation can mate)
+```{r}
+allele_counts <- sample(c("A", "a"), size = 40, replace = TRUE, prob = c(0.5, 0.5))
+allele_freq1<-table(allele_counts)/length(allele_counts)
+allele_freq1  
+```  
+The above is for only one generation. How about three generations? We have to somehow transfer the probabilities outputted from the random mating event to the next 
+```{r}
+allele_freq2 <- sample(c("A", "a"), size = 40, replace = TRUE, prob = allele_freq1)
+allele_gen2 <- table(allele_freq2)/length(allele_freq2)
+allele_gen2
+```  
+WIll be in assignment to make a general function to loop over several generations. Also will be in assignment about power analysis 
+##Random Normal distribution
+
+```{r}
+ru1 <- runif(n=10000, min = 0, max = 3) 
+length(ru1)
+head(ru1)
+tail(ru1)
+hist(ru1, freq = F)
+```  
+```{r}
+random.normal.100 <- rnorm(n = 100, mean =5, sd =2)  
+par(nfrow=c(2,2))
+plot(random.normal.100)
+hist(random.normal.100)
+qqnorm(y = random.normal.100)  
+```  
+##More efficient random sampling using replicate 
+```{r}
+rep.norm <- replicate(1000, rnorm(n=10, mean = 5, sd =2))
+hist(rep.norm)
+```  
+##Monte carlo simulation  
+- The above is an example of a simple monte carlo simulation. Run multiple trials for a stochastic model to define all potential outcomes of a set of parameters  
+- Monte carlo with the linear Regression model. WE add random variation around each point in the line which are means. 
+```{r}
+a=5
+b=0.7
+x <- seq(2,20)
+y_fixed <- a + b*x
+y.sim.1 <- rnorm(length(x), mean = y_fixed, sd = 2)
+plot(y.sim.1 ~ x, pch = 20) #plot of stnadard regression with no randoom noise (constant red line)
+abline(a = 5, b =0.7, col = "red") 
+y.sim.1.lm <- lm(y.sim.1 ~ x)
+abline(reg = y.sim.1.lm, lty =2, col = "blue") #plot of stochastic model along regression line 
+```  
+Simulate plot with stochastic noise 25 times. We want 25 lines within one graph
+```{r}
+a=5
+b=0.7
+x <- seq(2,20)
+y_fixed <- a + b*x 
+
+linear_repeats <- function(){
+y.sim.1 <- rnorm(length(x), mean = y_fixed, sd = 2.5)
+plot(y.sim.1 ~ x, pch = 20)
+y.sim.1.lm < lm(y.sim.1 ~ x)
+abline(reg = y.sim.1.lm, lty =2, col = "blue")    #Use a function to wrap a bunch of code and then use replicate to repeat it 25 times 
+}
+replicate(n=25, linear_repeats)
+```  
+##Back to the sample function  
+- a random 100000bp sequence with no biases  
+- x = vector of things to sample from (ATCG)  
+- size = how many samples  
+- replcate = TRUE or FALSE?  
+```{r}
+ATCG_count <- sample(c("A", "C", "T", "G"), size =100000, replace = TRUE)
+ATCG_freq <- table(ATCG_count)/length(ATCG_count)
+ATCG_freq_string <- paste0(ATCG_count, collapse="") #make vector of 100000 nucleotides to a single string for regex
+nchar(ATCG_freq_string) #check how many characters in string
+```  
+##Let's say we wanted to indeity how often a simple sequence motif occurs.  
+- How many times does AACCTTTT occur in this simulated sequence?  
+
+- R has many string manipulation functions (see ?grep and ?regex)  
+
+- Next week will learn about stringi and stringr packages for regex in R.  
+
+- use gregexpr() of global regular expression
+```{r}
+x <- gregexpr("AACTTTT", ATCG_freq_string, fixed = T, useBytes = T)
+length(unlist(x))
+```  
+##Present GC bias  using sample()  
+```{r}
+ATCG_count_gc <- sample(c("A", "C", "T", "G"), size =100000, replace = TRUE, prob=c(0.3, 0.3, 0.2, 0.2))
+ATCG_freq_gc <- table(ATCG_count_gc)/length(ATCG_count_gc)
+ATCG_freq_string_gc <- paste0(ATCG_count_gc, collapse="") #make vector of 100000 nucleotides to a single string for regex
+nchar(ATCG_freq_string_gc) #check how many characters in string
+y <- gregexpr("AACTTTT", ATCG_freq_string_gc, fixed = T, useBytes = T)
+length(unlist(y))
+```  
+The above code is not ideal for real data  
+- Cannot except multiple lines of nucleotides  
+
+- Cannot use ambigous degenerate bases  
+
+- gregexpr() only includes unique matches, if the pattern is found in overlappoing parts of the sequence, it will only count it once  
+
+- can't deal with double stranded complement
+
+
+
+
+
+
 
 
