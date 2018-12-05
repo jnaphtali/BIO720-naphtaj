@@ -1,0 +1,204 @@
+---
+title: "Bio720 Simulation Assignment"
+author: "James Naphtali"
+date: "December 5, 2018"
+output: html_document
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```  
+
+##Question 2  
+
+```{r}
+diploid_selection <- function(p0 = 0.01, w_AA = 0.8, w_aa = 0.16, w_Aa = 0.7, n = 100) {
+    
+    # Initialize vectors to store allele frequencies and mean pop fitness
+    p <- rep(NA, n) 
+    
+    w_bar <- rep(NA, n) 
+     
+    # starting conditions
+    p[1] <- p0 # starting allele frequency have to start the counter/for loop somewhere, so assign input of p0 with 0.01 to start of index 1 in p list 
+
+    w_bar[1] <- (((p[1]^2)) * w_AA) + (2*p[1]*(1-p[1])*w_Aa) + ((((1-p[1])^2) * w_aa))
+    
+    # now we need to loop from generation to generation
+    for (i in 2:n) {
+        w_bar[i-1] <- (((p[i-1]^2)) * w_AA) + (2*p[i-1]*(1-p[i-1])*w_Aa) + ((((1-p[i-1])^2) * w_aa)) #Mean fitness 
+        p[i] <- ((p[i-1]^2) * (w_AA/w_bar[i-1])) + ((p[i-1] * (1-p[i-1])) * (w_Aa/w_bar[i-1])) #Allele frequency of A
+        
+    }
+    
+    return(p)
+}
+#Graph model 
+p <- diploid_selection(p0 = 0.01, w_AA = 0.7, w_aa = 0.3, w_Aa = 0.7, n =100)
+generations <- 1:length(p)
+plot(p ~ generations, pch =20,
+     ylab = "allele frequency",
+     xlab = "generation")
+```  
+
+##Question 3  
+```{r}
+gen_drift_sim <- function(indiv=1000, p = 0.4, n=1000){
+  num_alleles = indiv * 2
+  p_vec <- rep(NA, n)
+  p_vec[1] <- p
+  
+  plot(1,0, type="n", xlim=c(1,n), ylim=c(0,1), xlab="Generation", ylab="Frequency of allele A")
+  
+  for (i in 2:n){
+    allele_counts <- sample(c("A", "a"), size = num_alleles, replace = TRUE, prob = c(p, (1-p))) 
+    p <- length(allele_counts[allele_counts == "A"])/(num_alleles)
+    p_vec[i] <- p
+    
+    
+    points(i, p, pch=19, col="black")
+    
+  }
+}
+gen_drift_sim()
+```  
+
+##Question 4 
+```{r}
+gen_drift_sim2 <- function(indiv=200, p0 = 0.5, n=100, num_sim = 1000){
+  num_alleles = indiv * 2
+  p_vec <- rep(1, n)
+  
+  
+  for (x in 1:num_sim){
+    p <- p0
+  
+    for (i in 2:n){
+      allele_counts <- sample(c("A", "a"), size = num_alleles, replace = TRUE, prob = c(p, (1-p))) 
+      p <- length(allele_counts[allele_counts == "A"])/(num_alleles)
+      
+    
+    }
+    p_vec[x] <- p
+  } 
+  return(length(p_vec[p_vec == 0])/length(p_vec))
+}
+
+gen_drift_sim2(indiv = 200, p0 = 0.1, n=100, num_sim = 1000)
+gen_drift_sim2(indiv = 200, p0 = 0.25, n=100, num_sim = 1000)
+gen_drift_sim2(indiv = 200, p0 = 0.5, n=100, num_sim = 1000)
+```  
+##Question 5  
+```{r}
+library(reshape)
+library(ggplot2)
+#Original Genetic drift simulator, only 1 simulation
+gen_drift_sim3 <- function(indiv=100, p = 0.5, n=1000)
+  {
+  num_alleles = indiv * 2
+  p_vec <- rep(NA, n)
+  p_vec[1] <- p
+  
+  
+  for (i in 2:n){
+    allele_counts <- sample(c("A", "a"), size = num_alleles, replace = TRUE, prob = c(p, (1-p))) 
+    p <- length(allele_counts[allele_counts == "A"])/(num_alleles)
+    p_vec[i] <- p
+    
+  }
+  return(p_vec)
+}
+gen_drift_sim3()
+#Function to assign values of repeated gen_drift simulations into a list. n is #of generations, num_sim is number of simulations
+df_drift_sim <- function(indiv=100, p = 0.5, n=100, num_sim = 100) {
+  sim_data <- list()
+  for (i in 1:num_sim) {
+    sims <- unlist(gen_drift_sim3(indiv, p, n))
+    sim_data <- rbind(unlist(sim_data), sims)
+  } 
+ 
+  sim_data <- as.data.frame(sim_data)
+  sim_data <- melt(t(sim_data))
+  
+} 
+sim_data <- df_drift_sim()
+sim_data$X1 <- sub("^.", "", sim_data$X1) #Remove V prefix from generation column 
+sim_data$X1 <- as.numeric(sim_data$X1) #Convert to numeric
+ggplot(sim_data, aes(x = X1, y = value, color = factor(X2))) + 
+  geom_line() + 
+  labs(x = "Generations", y = "Allele frequency") +
+  theme(legend.position="none")
+```
+
+##Question 6  
+
+###Function to generate p_value of user-defined linear trend
+```{r}
+p_val <- function(a, b, num_obs, res_err) {
+  x <- seq(from = 1, to = 10, length.out = num_obs)
+  y_det <- a + b * x
+  y_sim <- rnorm(length(x), mean = y_det, sd = res_err)
+  mod_sim <- lm(y_sim ~ x)
+  p_val_slope <- summary(mod_sim)$coef[2,4]
+  return(p_val_slope)
+}
+p_val(0.5, 0.1, 20, 2) 
+p_val(0.5, 0.1, 20, 2) 
+p_val(0.5, 0.1, 20, 2) 
+```  
+Since this is a stochastic model, rerunning the function multiple times should yield different proportions even with the same inputs which is observed above
+
+###Distribution of p_values over 1000 simulations
+
+```{r}
+rep_p_val <- rep(0, 1000)
+for (i in 1:length(rep_p_val)) {
+  rep_p_val[i] <- p_val(0.5, 0.1, 20, 2)
+} #loop 1000 times p-value power analysis
+rep_p_val2 <- as.data.frame(unlist(rep_p_val))
+colnames(rep_p_val2) <- "p_val"
+ggplot(rep_p_val2, aes(x=p_val)) + 
+  geom_histogram(bins = 100) +
+  labs(x = "p-value") 
+```
+
+###Proportion of p-values less than 0.05 
+
+```{r}
+length(rep_p_val[rep_p_val<0.05])/length(rep_p_val)
+```
+
+###Distribution of p_values if slope is 0
+
+```{r, message = F}
+rep_p_val <- rep(0, 1000)
+for (i in 1:length(rep_p_val)) {
+  rep_p_val[i] <- p_val(0.5, 0, 20, 2)
+} #loop 1000 times p-value power analysis
+rep_p_val2 <- as.data.frame(unlist(rep_p_val)) #Convert to dataframe
+colnames(rep_p_val2) <- "p_val"
+ggplot(rep_p_val2, aes(x=p_val)) + 
+  geom_histogram(bins = 100) +
+  labs(x = "p-value") 
+length(rep_p_val[rep_p_val<0.05])/length(rep_p_val)
+```  
+The counts of p-values are more evenly distributed as opposed to being skewed towards the right (greater proportion of p-values less than 0.5) as seen when the slope = 0.1 compared to when the slope = 0. This is because there is no effect of x on y if the slope = 0 and therefore the p-values will not skew to being less than or greater than 0.5, confirming that the null hypothesis is true and the slope is not equal to zero. 
+
+###Distribution of p_values over 100 simulations throughout different sample sizes
+
+```{r}
+sample_sizes <- seq(10, 100, 5) #list of values from 10 to 100 in increments of 5 to act as sample size values
+p_freq <- rep(0, length(sample_sizes))
+for (i in 1:length(sample_sizes)) {
+  p_val_sim_mat <- rep(0, 100) #make empty matrix to hold simulation 
+  for (x in 1:100) {
+    p_val_sim_mat[x] <- p_val(0.5, 0.1, sample_sizes[i], 1.5)
+  } #input p_values into empty matrix 
+  p_freq[i] <- length(p_val_sim_mat[p_val_sim_mat < 0.05])/length(p_val_sim_mat)
+}
+p_freq_sim <- as.data.frame(p_freq)
+ggplot(p_freq_sim, aes(x = sample_sizes, y = p_freq)) + geom_bar(stat="identity") +
+  labs(x = "Sample size", y = "Frequency of P-values < 0.05")
+```
+
